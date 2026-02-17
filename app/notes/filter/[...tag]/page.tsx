@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { fetchNotes } from '../../../../lib/api';
 import css from '../../../../app/page.module.css';
 
@@ -9,9 +10,7 @@ interface Props {
 
 export default async function FilteredNotesPage(props: Props) {
   const params = await props.params;
-
   const tagParam = decodeURIComponent(params.tag[0]);
-
   const querySearch = tagParam === 'all' ? undefined : tagParam;
 
   const { notes } = await fetchNotes({
@@ -30,10 +29,16 @@ export default async function FilteredNotesPage(props: Props) {
         <ul className={css.list}>
           {notes.map((note) => (
             <li key={note.id} className={css.card}>
-              <h3 className={css.cardTitle}>{note.title}</h3>
-              <p className={css.cardDate}>
-                 {new Date(note.createdAt).toLocaleDateString()}
-              </p>
+              <Link 
+                href={`/notes/${note.id}`} 
+                scroll={false} 
+                style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+              >
+                <h3 className={css.cardTitle}>{note.title}</h3>
+                <p className={css.cardDate}>
+                   {new Date(note.createdAt).toLocaleDateString()}
+                </p>
+              </Link>
             </li>
           ))}
         </ul>

@@ -1,44 +1,56 @@
-import { useEffect, type ReactNode} from 'react';
-import { createPortal } from 'react-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useEffect, ReactNode } from 'react';
 import styles from './Modal.module.css';
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   children: ReactNode;
 }
 
-const Modal = ({ isOpen, onClose, children }: ModalProps) => {
+const Modal = ({ children }: ModalProps) => {
+  const router = useRouter();
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        router.back();
+      }
     };
 
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [router]);
 
-  if (!isOpen) return null;
-
-  return createPortal(
+  return (
     <div
       className={styles.backdrop}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+      onClick={() => router.back()}
     >
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <button 
+          onClick={() => router.back()}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            fontSize: '1.5rem',
+            lineHeight: 1
+          }}
+        >
+          &times;
+        </button>
         {children}
       </div>
-    </div>,
-    document.body
+    </div>
   );
 };
 
