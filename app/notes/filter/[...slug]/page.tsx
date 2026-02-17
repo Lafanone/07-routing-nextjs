@@ -4,13 +4,13 @@ import css from '../../../../app/page.module.css';
 
 interface Props {
   params: Promise<{
-    tag: string[];
+    slug: string[];
   }>;
 }
 
 export default async function FilteredNotesPage(props: Props) {
   const params = await props.params;
-  const tagParam = decodeURIComponent(params.tag[0]);
+  const tagParam = decodeURIComponent(params.slug[0]);
   const querySearch = tagParam === 'all' ? undefined : tagParam;
 
   const { notes } = await fetchNotes({
