@@ -1,40 +1,54 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, ReactNode } from 'react';
+import { useEffect, useCallback, ReactNode } from 'react';
 import styles from './Modal.module.css';
 
 interface ModalProps {
   children: ReactNode;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const Modal = ({ children }: ModalProps) => {
+export default function Modal({ children, isOpen, onClose }: ModalProps) {
   const router = useRouter();
+  const shouldShow = isOpen === undefined ? true : isOpen;
+  const handleDismiss = useCallback(() => {
+    if (onClose) {
+      onClose(); 
+    } else {
+      router.back(); 
+    }
+  }, [onClose, router]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        router.back();
-      }
+      if (e.key === 'Escape') handleDismiss();
     };
 
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
+    if (shouldShow) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
 
     return () => {
       document.body.style.overflow = 'auto';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [router]);
+  }, [shouldShow, handleDismiss]);
+
+  if (!shouldShow) return null;
 
   return (
     <div
       className={styles.backdrop}
-      onClick={() => router.back()}
+      onClick={handleDismiss}
+      role="dialog"
+      aria-modal="true"
     >
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button 
-          onClick={() => router.back()}
+          onClick={handleDismiss}
           style={{
             position: 'absolute',
             top: '10px',
@@ -52,6 +66,4 @@ const Modal = ({ children }: ModalProps) => {
       </div>
     </div>
   );
-};
-
-export default Modal;
+}
