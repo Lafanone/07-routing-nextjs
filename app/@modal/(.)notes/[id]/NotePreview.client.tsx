@@ -1,18 +1,43 @@
 'use client';
 
-import Modal from '../../../../components/Modal/Modal';
+import { useQuery } from '@tanstack/react-query';
+import { useParams, useRouter } from 'next/navigation';
+import Modal from '@/components/Modal/Modal';
+import { fetchNoteById } from '@/lib/api';
 import css from './NotePreview.module.css'; 
 
-interface Note {
-  title: string;
-  content: string;
-  tag?: string;
-  createdAt: string;
-}
+export default function NotePreviewClient() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params?.id as string;
 
-export default function NotePreviewClient({ note }: { note: Note }) {
+  const { data: note, isLoading, isError } = useQuery({
+    queryKey: ['notes', id],
+    queryFn: () => fetchNoteById(id),
+  });
+
+  const handleClose = () => {
+    router.back();
+  };
+
+  if (isLoading) {
+    return (
+      <Modal isOpen={true} onClose={handleClose}>
+        <div className={css.container}><p>Loading...</p></div>
+      </Modal>
+    );
+  }
+
+  if (isError || !note) {
+    return (
+      <Modal isOpen={true} onClose={handleClose}>
+        <div className={css.container}><p>Error loading note</p></div>
+      </Modal>
+    );
+  }
+
   return (
-    <Modal>
+    <Modal isOpen={true} onClose={handleClose}>
       <div className={css.container}>
         <h2 className={css.title}>{note.title}</h2>
         <div className={css.meta}>

@@ -1,3 +1,4 @@
+import { HydrationBoundary, QueryClient, dehydrate } from '@tanstack/react-query';
 import { fetchNotes } from '@/lib/api';
 import NotesClient from './Notes.client';
 
@@ -9,15 +10,20 @@ interface Props {
 
 export default async function FilteredNotesPage(props: Props) {
   const params = await props.params;
-  
   const tagParam = decodeURIComponent(params.slug[0]);
-  const querySearch = tagParam === 'all' ? undefined : tagParam;
+  
+  const queryTag = tagParam === 'all' ? undefined : tagParam;
 
-  const { notes } = await fetchNotes({
-    page: 1,
-    perPage: 10,
-    search: querySearch,
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ['notes', tagParam, 1, ''],
+    queryFn: () => fetchNotes({ page: 1, perPage: 10, search: undefined, tag: queryTag }),
   });
 
-  return <NotesClient notes={notes} tagParam={tagParam} />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NotesClient tagParam={tagParam} />
+    </HydrationBoundary>
+  );
 }
